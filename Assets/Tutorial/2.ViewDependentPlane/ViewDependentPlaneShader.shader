@@ -1,4 +1,4 @@
-﻿Shader "Unlit/OceanPro/Tutorial/ViewDependentPlane"
+﻿Shader "OceanPro/Tutorial/ViewDependentPlane"
 {
 	Properties
 	{
@@ -37,7 +37,7 @@
 				UNITY_INITIALIZE_OUTPUT(v2f, o);
 
 				float3 wpos = 0;
-				wpos.xz = (v.vertex.xz * 2 - 1) * _PlaneParam.w + _PlaneParam.xz;
+				wpos.xz = (v.vertex.xz * 2 - 1) * _PlaneParam.w + _WorldSpaceCameraPos.xz;
 				wpos.y = _PlaneParam.y;
 
 				o.vertex = UnityWorldToClipPos(wpos);

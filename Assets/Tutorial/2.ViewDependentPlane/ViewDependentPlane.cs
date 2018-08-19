@@ -57,15 +57,13 @@ namespace OceanPro
 			if (material != null)
 			{
 				var param = new Vector4();
-				param.x = Camera.main.transform.position.x;
 				param.y = planeY;
-				param.z = Camera.main.transform.position.z;
 				param.w = planeWidth;
 
 				material.SetVector(planeParamId, param);
 
-				gameObject.transform.position = new Vector3(param.x, param.y, param.z);
-				meshFilter.sharedMesh.bounds = new Bounds(new Vector3(0.5f, 0, 0.5f), new Vector3(planeWidth, 1, planeWidth));
+				gameObject.transform.position = new Vector3(Camera.main.transform.position.x, planeY, Camera.main.transform.position.z);
+				meshFilter.sharedMesh.bounds = new Bounds(new Vector3(0.5f, 0, 0.5f), new Vector3(planeWidth * 2, 1, planeWidth * 2));
 			}
 		}
 
