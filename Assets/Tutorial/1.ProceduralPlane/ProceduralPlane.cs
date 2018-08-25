@@ -5,7 +5,7 @@ using UnityEngine;
 namespace OceanPro.Tutorial
 {
 	[ExecuteInEditMode]
-	public class ProceduralMesh : MonoBehaviour
+	public class ProceduralPlane : MonoBehaviour
 	{
 		public int gridSize = 10;
 		private int lastGridSize;
