@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace OceanPro.Tutorial
+namespace OceanPro
 {
 	public static class GameObjectMethodExtension
 	{
