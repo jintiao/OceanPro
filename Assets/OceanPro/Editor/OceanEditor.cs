@@ -13,10 +13,10 @@ namespace OceanPro
 			var t = (Ocean)target;
 
 			EditorGUI.BeginChangeCheck();
-			var wfm = GUILayout.Toggle(t.wireframeMode, " Wireframe Mode");
+			var mode = GUILayout.Toggle(t.wireframeMode, " Wireframe Mode");
 			if(EditorGUI.EndChangeCheck())
 			{
-				t.SetWireframeMode(wfm);
+				t.SetWireframeMode(mode);
 			}
 
 			//DrawDefaultInspector();

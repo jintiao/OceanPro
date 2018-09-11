@@ -1,4 +1,4 @@
-﻿Shader "Hidden/OceanPro/Ocean"
+﻿Shader "Hidden/OceanPro/OceanWireframe"
 {
 	Properties
 	{
@@ -16,9 +16,10 @@
 			#pragma target gl4.1
 
 			#pragma vertex OceanVS
-			#pragma fragment OceanFS
+			#pragma geometry OceanDebugGS
+			#pragma fragment OceanDebugFS
 
-            #include "OceanCommon.cginc"
+            #include "OceanWireframe.cginc"
 			ENDCG
 		}
 	}

@@ -6,7 +6,8 @@ namespace OceanPro
 {
 	public class OceanRenderer
 	{
-		public Material oceanMaterial;
+		private MeshRenderer meshRenderer;
+		private Material[] oceanMaterials;
 
 		public OceanRenderer(GameObject go, int gridSize)
 		{
@@ -15,8 +16,10 @@ namespace OceanPro
 
 		public void Reset(GameObject go, int gridSize)
 		{
+			CreateMaterial();
+
 			go.GetOrAddComponent<MeshFilter>().mesh = CreateMesh(gridSize);
-			go.GetOrAddComponent<MeshRenderer>().material = CreateMaterial();
+			meshRenderer = go.GetOrAddComponent<MeshRenderer>();
 		}
 
 		private Mesh CreateMesh(int gridSize)
@@ -82,16 +85,27 @@ namespace OceanPro
 			return mesh;
 		}
 
-		private Material CreateMaterial()
+		private void CreateMaterial()
 		{
-			oceanMaterial = new Material(Shader.Find("Hidden/OceanPro/Ocean"));
-			oceanMaterial.name = "OceanMaterial";
-			return oceanMaterial;
+			oceanMaterials = new Material[2];
+
+			var mat = new Material(Shader.Find("Hidden/OceanPro/Ocean"));
+			mat.name = "OceanMaterial";
+			oceanMaterials[0] = mat;
+
+			var mat1 = new Material(Shader.Find("Hidden/OceanPro/OceanWireframe"));
+			mat1.name = "OceanWireframeMaterial";
+			oceanMaterials[1] = mat1;
 		}
 
 		public void Update()
 		{
 			
+		}
+
+		public void SetWireframeMode(bool wireframeMode)
+		{
+			meshRenderer.material = oceanMaterials[wireframeMode ? 1 : 0];
 		}
 	}
 }

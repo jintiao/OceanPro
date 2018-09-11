@@ -3,46 +3,35 @@
 
 #include "UnityCG.cginc"
 
-struct appdata
+struct OVertexInput
 {
 	float4 vertex : POSITION;
 	float2 uv : TEXCOORD0;
 };
 
-struct v2f
+struct OVertexOutput
 {
-	float2 uv : TEXCOORD0;
-	UNITY_FOG_COORDS(1)
-	float4 vertex : SV_POSITION;
+	UNITY_POSITION(pos);
+	float2 tex : TEXCOORD0;
 };
 
-sampler2D _MainTex;
-float4 _MainTex_ST;
-
-v2f OceanVS (appdata v)
+OVertexOutput OceanVS (OVertexInput v)
 {
-	v2f o;
-	o.vertex = UnityObjectToClipPos(v.vertex);
-	o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-	UNITY_TRANSFER_FOG(o,o.vertex);
+	OVertexOutput o;
+	UNITY_INITIALIZE_OUTPUT(OVertexOutput, o);
+
+	o.pos = UnityObjectToClipPos(v.vertex);
+	o.tex = v.uv;
+
 	return o;
 }
 
-#ifdef OCEAN_WIREFRAME_MODE
-
-fixed4 OceanFS (v2f i) : SV_Target
+half4 OceanFS (OVertexOutput i) : SV_Target
 {
-	fixed4 col = fixed4(0, 0, 1, 1);
+	half4 col = half4(0, 0, 1, 1);
 	return col;
 }
 
-#else
 
-fixed4 OceanFS (v2f i) : SV_Target
-{
-	fixed4 col = fixed4(1, 0, 0, 1);
-	return col;
-}
-#endif
 
 #endif // #ifndef OCEAN_COMMON

@@ -53,20 +53,10 @@ namespace OceanPro
 			oceanRenderer?.Update();
 		}
 
-		public void SetWireframeMode(bool wfm)
+		public void SetWireframeMode(bool wireframe)
 		{
-			wireframeMode = wfm;
-			if(oceanRenderer != null && oceanRenderer.oceanMaterial != null)
-			{
-				if (wfm)
-				{
-					oceanRenderer.oceanMaterial.EnableKeyword("OCEAN_WIREFRAME_MODE");
-				}
-				else
-				{
-					oceanRenderer.oceanMaterial.DisableKeyword("OCEAN_WIREFRAME_MODE");
-				}
-			}
+			wireframeMode = wireframe;
+			oceanRenderer.SetWireframeMode(wireframeMode);
 		}
 	}
 }
