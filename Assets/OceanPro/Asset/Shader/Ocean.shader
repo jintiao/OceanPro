@@ -16,6 +16,9 @@
 			#pragma target gl4.1
 
 			#pragma vertex OceanVS
+			#pragma hull OceanHS
+			#pragma domain OceanDS
+			#pragma geometry OceanGS
 			#pragma fragment OceanFS
 
             #include "OceanCommon.cginc"

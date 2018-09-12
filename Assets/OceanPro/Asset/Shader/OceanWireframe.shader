@@ -16,8 +16,10 @@
 			#pragma target gl4.1
 
 			#pragma vertex OceanVS
-			#pragma geometry OceanDebugGS
-			#pragma fragment OceanDebugFS
+			#pragma hull OceanHS
+			#pragma domain OceanDS
+			#pragma geometry OceanGS
+			#pragma fragment OceanFS
 
             #include "OceanWireframe.cginc"
 			ENDCG
