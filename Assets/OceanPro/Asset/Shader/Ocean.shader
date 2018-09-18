@@ -2,6 +2,7 @@
 {
 	Properties
 	{
+		_OceanParam ("Ocean Param", Vector) = (0,0,0,0) 
 	}
 
 	SubShader

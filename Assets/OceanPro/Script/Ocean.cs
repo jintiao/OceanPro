@@ -35,6 +35,8 @@ namespace OceanPro
 
 		public int waterTessellationAmount = 10;
 
+		public float oceanHeight = 1;
+
 		private OceanRenderer oceanRenderer;
 
 		private void OnEnable()
@@ -44,13 +46,17 @@ namespace OceanPro
 
 		public void ResetOcean()
 		{
-			oceanRenderer = new OceanRenderer(gameObject, waterTessellationAmount);
+			oceanRenderer = new OceanRenderer(gameObject, waterTessellationAmount, oceanHeight);
 			SetWireframeMode(wireframeMode);
 		}
 
 		private void Update()
 		{
-			oceanRenderer?.Update();
+			if (oceanRenderer != null)
+			{
+				oceanRenderer.oceanHeight = oceanHeight;
+				oceanRenderer.Update();
+			}
 		}
 
 		public void SetWireframeMode(bool wireframe)

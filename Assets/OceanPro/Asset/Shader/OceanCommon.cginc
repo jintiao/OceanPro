@@ -13,6 +13,8 @@ struct HSInput
 	float4 vertex : INTERNALTESSPOS;
 };
 
+float4 _OceanParam;
+
 HSInput OceanVS (VSInput v)
 {
 	HSInput o;
@@ -26,7 +28,7 @@ HSInput OceanVS (VSInput v)
 	cpos.xy -= frac(cpos.xy);
 	vPos.xz += cpos;
 
-	vPos.y = 1;
+	vPos.y = _OceanParam.w + (4.5f * (vPos.w > 0.98f) ? 1 : 0);
 
 	o.vertex = UnityObjectToClipPos(vPos);
 

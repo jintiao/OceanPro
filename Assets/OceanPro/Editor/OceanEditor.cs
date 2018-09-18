@@ -19,7 +19,7 @@ namespace OceanPro
 				t.SetWireframeMode(mode);
 			}
 
-			//DrawDefaultInspector();
+			DrawDefaultInspector();
 		}
 	}
 }

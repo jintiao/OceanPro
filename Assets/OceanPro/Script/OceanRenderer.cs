@@ -11,13 +11,33 @@ namespace OceanPro
 		private Material[] oceanMaterials;
 		private Camera oceanCamera;
 
-		public OceanRenderer(GameObject go, int gridSize)
+		private int oceanParamPropertyId;
+		private Vector4 oceanParam;
+
+		public float oceanHeight
 		{
-			Reset(go, gridSize);
+			set
+			{
+				if (oceanMaterials != null)
+				{
+					oceanParam.w = value;
+					foreach(var mat in oceanMaterials)
+					{
+						mat.SetVector(oceanParamPropertyId, oceanParam);
+					}
+				}
+			}
 		}
 
-		public void Reset(GameObject go, int gridSize)
+		public OceanRenderer(GameObject go, int gridSize, float height)
 		{
+			Reset(go, gridSize, height);
+		}
+
+		public void Reset(GameObject go, int gridSize, float height)
+		{
+			oceanHeight = height;
+
 			CreateMesh(gridSize);
 			CreateMaterial();
 			SetupRenderer(go);
@@ -25,7 +45,6 @@ namespace OceanPro
 
 		private void CreateMesh(int gridSize)
 		{
-
 			if(gridSize < 2)
 				gridSize = 2;
 
@@ -95,6 +114,9 @@ namespace OceanPro
 			var mat1 = new Material(Shader.Find("Hidden/OceanPro/OceanWireframe"));
 			mat1.name = "OceanWireframeMaterial";
 			oceanMaterials[1] = mat1;
+
+			oceanParam = new Vector4();
+			oceanParamPropertyId = Shader.PropertyToID("_OceanParam");
 		}
 
 		private void SetupRenderer(GameObject go)
@@ -112,6 +134,7 @@ namespace OceanPro
 			{
 				oceanCamera = Camera.main;
 			}
+
 
 			oceanMesh.bounds = new Bounds(oceanCamera.transform.position, new Vector3(oceanCamera.farClipPlane * 2, 1, oceanCamera.farClipPlane * 2));
 		}
