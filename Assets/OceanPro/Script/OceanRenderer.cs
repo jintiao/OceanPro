@@ -7,7 +7,9 @@ namespace OceanPro
 	public class OceanRenderer
 	{
 		private MeshRenderer meshRenderer;
+		private Mesh oceanMesh;
 		private Material[] oceanMaterials;
+		private Camera oceanCamera;
 
 		public OceanRenderer(GameObject go, int gridSize)
 		{
@@ -16,13 +18,12 @@ namespace OceanPro
 
 		public void Reset(GameObject go, int gridSize)
 		{
+			CreateMesh(gridSize);
 			CreateMaterial();
-
-			go.GetOrAddComponent<MeshFilter>().mesh = CreateMesh(gridSize);
-			meshRenderer = go.GetOrAddComponent<MeshRenderer>();
+			SetupRenderer(go);
 		}
 
-		private Mesh CreateMesh(int gridSize)
+		private void CreateMesh(int gridSize)
 		{
 
 			if(gridSize < 2)
@@ -76,13 +77,11 @@ namespace OceanPro
 				}
 			}
 
-			var mesh = new Mesh();
-			mesh.name = "OceanMesh";
-			mesh.vertices = vertices;
-			mesh.triangles = indices;
-			mesh.uv = uvs;
-
-			return mesh;
+			oceanMesh = new Mesh();
+			oceanMesh.name = "OceanMesh";
+			oceanMesh.vertices = vertices;
+			oceanMesh.triangles = indices;
+			oceanMesh.uv = uvs;
 		}
 
 		private void CreateMaterial()
@@ -98,9 +97,23 @@ namespace OceanPro
 			oceanMaterials[1] = mat1;
 		}
 
+		private void SetupRenderer(GameObject go)
+		{
+			go.GetOrAddComponent<MeshFilter>().mesh = oceanMesh;
+			meshRenderer = go.GetOrAddComponent<MeshRenderer>();
+		}
+
 		public void Update()
 		{
+			if(oceanMesh == null)
+				return;
 			
+			if (oceanCamera == null)
+			{
+				oceanCamera = Camera.main;
+			}
+
+			oceanMesh.bounds = new Bounds(oceanCamera.transform.position, new Vector3(oceanCamera.farClipPlane * 2, 1, oceanCamera.farClipPlane * 2));
 		}
 
 		public void SetWireframeMode(bool wireframeMode)

@@ -6,14 +6,11 @@
 struct VSInput
 {
 	float4 vertex : POSITION;
-	//float2 uv : TEXCOORD0;
 };
 
 struct HSInput
 {
-	//UNITY_POSITION(pos);
 	float4 vertex : INTERNALTESSPOS;
-	//float2 tex : TEXCOORD0;
 };
 
 HSInput OceanVS (VSInput v)
@@ -21,8 +18,17 @@ HSInput OceanVS (VSInput v)
 	HSInput o;
 	UNITY_INITIALIZE_OUTPUT(HSInput, o);
 
-	o.vertex = UnityObjectToClipPos(v.vertex);
-	//o.tex = v.uv;
+	float4 vPos = v.vertex;
+	vPos.w = vPos.y; // store edge information
+	vPos.xz = (vPos.xz * 2.0f - 1.0f) * ((vPos.w > 0.98f) ? _ProjectionParams.z * 2.0f : 500.0f);
+
+	float2 cpos = _WorldSpaceCameraPos.xz;
+	cpos.xy -= frac(cpos.xy);
+	vPos.xz += cpos;
+
+	vPos.y = 1;
+
+	o.vertex = UnityObjectToClipPos(vPos);
 
 	return o;
 }
@@ -39,7 +45,7 @@ TessFactor OceanPCF (InputPatch<HSInput, 3> patch)
     f.edge[0] = 1;
     f.edge[1] = 1;
     f.edge[2] = 1;
-	f.inside = 5;
+	f.inside = 1;
 	return f;
 }
 
