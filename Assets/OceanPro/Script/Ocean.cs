@@ -29,13 +29,24 @@ namespace OceanPro
 		WaterTessellationSwathWidth = 12;
 		
 		public float oceanWaterLevel;
+
+		m_fRECustomData[0] = p3DEngine->m_oceanWindDirection;
+		m_fRECustomData[1] = p3DEngine->m_oceanWindSpeed;
+		m_fRECustomData[2] = 0.0f; // used to be m_oceanWavesSpeed
+		m_fRECustomData[3] = p3DEngine->m_oceanWavesAmount;
+		m_fRECustomData[4] = p3DEngine->m_oceanWavesSize;
+		sincos_tpl(p3DEngine->m_oceanWindDirection, &m_fRECustomData[6], &m_fRECustomData[5]);
+		m_fRECustomData[7] = fWaterLevel;
 		*/
 
 		public bool wireframeMode = false;
 
 		public int waterTessellationAmount = 10;
 
-		public float oceanHeight = 1;
+		public float oceanLevel = 1;
+		public float waveAmount = 1.5f;
+		public float waveSize = 0.75f;
+		public Texture2D waveTex;
 
 		private OceanRenderer oceanRenderer;
 
@@ -46,7 +57,7 @@ namespace OceanPro
 
 		public void ResetOcean()
 		{
-			oceanRenderer = new OceanRenderer(gameObject, waterTessellationAmount, oceanHeight);
+			oceanRenderer = new OceanRenderer(this);
 			SetWireframeMode(wireframeMode);
 		}
 
@@ -54,7 +65,7 @@ namespace OceanPro
 		{
 			if (oceanRenderer != null)
 			{
-				oceanRenderer.oceanHeight = oceanHeight;
+				oceanRenderer.oceanHeight = oceanLevel;
 				oceanRenderer.Update();
 			}
 		}

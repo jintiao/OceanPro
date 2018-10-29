@@ -6,11 +6,14 @@ namespace OceanPro
 {
 	public class OceanRenderer
 	{
+		private Ocean ocean;
+
 		private MeshRenderer meshRenderer;
 		private Mesh oceanMesh;
 		private Material[] oceanMaterials;
 		private Camera oceanCamera;
 
+		private int oceanDispTexPropertyId;
 		private int oceanParamPropertyId;
 		private Vector4 oceanParam;
 
@@ -29,18 +32,18 @@ namespace OceanPro
 			}
 		}
 
-		public OceanRenderer(GameObject go, int gridSize, float height)
+		public OceanRenderer(Ocean ocean)
 		{
-			Reset(go, gridSize, height);
+			Reset(ocean);
 		}
 
-		public void Reset(GameObject go, int gridSize, float height)
+		public void Reset(Ocean ocean)
 		{
-			oceanHeight = height;
+			oceanHeight = ocean.oceanLevel;
 
-			CreateMesh(gridSize);
-			CreateMaterial();
-			SetupRenderer(go);
+			CreateMesh(ocean.waterTessellationAmount);
+			CreateMaterial(ocean.waveTex);
+			SetupRenderer(ocean.gameObject);
 		}
 
 		private void CreateMesh(int gridSize)
@@ -103,20 +106,23 @@ namespace OceanPro
 			oceanMesh.uv = uvs;
 		}
 
-		private void CreateMaterial()
+		private void CreateMaterial(Texture2D dispTex)
 		{
+			oceanParam = new Vector4();
+			oceanParamPropertyId = Shader.PropertyToID("_OceanParam");
+			oceanDispTexPropertyId = Shader.PropertyToID("_DispTex");
+
 			oceanMaterials = new Material[2];
 
 			var mat = new Material(Shader.Find("Hidden/OceanPro/Ocean"));
 			mat.name = "OceanMaterial";
+			mat.SetTexture(oceanDispTexPropertyId, dispTex);
 			oceanMaterials[0] = mat;
 
 			var mat1 = new Material(Shader.Find("Hidden/OceanPro/OceanWireframe"));
 			mat1.name = "OceanWireframeMaterial";
 			oceanMaterials[1] = mat1;
 
-			oceanParam = new Vector4();
-			oceanParamPropertyId = Shader.PropertyToID("_OceanParam");
 		}
 
 		private void SetupRenderer(GameObject go)

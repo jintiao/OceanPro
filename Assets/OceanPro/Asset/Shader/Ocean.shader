@@ -2,6 +2,7 @@
 {
 	Properties
 	{
+		_DispTex( "Water Displacement Texture", 2D ) = "white" {}
 		_OceanParam ("Ocean Param", Vector) = (0,0,0,0) 
 	}
 
