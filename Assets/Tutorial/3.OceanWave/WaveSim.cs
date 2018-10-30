@@ -57,6 +57,7 @@ namespace OceanPro.Tutorial
 			dispFieldZ = new ComplexF[gridSize2];
 
 			InitConstantLUT();
+			InitFourierAmps();
 		}
 
 		private void InitConstantLUT()

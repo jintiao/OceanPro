@@ -11,7 +11,7 @@ namespace OceanPro
 
 		public void DoFFT2D(ComplexF[] data)
 		{
-			int size = (int)Mathf.Log(data.Length, 2);
+			int size = (int)Mathf.Sqrt(data.Length);
 			if(realCache == null || realCache.Length != size)
 			{
 				realCache = new float[size];

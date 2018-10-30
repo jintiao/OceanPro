@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace OceanPro.Tutorial
 {
-	[ExecuteInEditMode]
+	//[ExecuteInEditMode]
 	public class OceanWave : MonoBehaviour
 	{
 		public int waveTexSize = 64;
@@ -26,7 +26,7 @@ namespace OceanPro.Tutorial
 				Debug.LogWarning("RGBA32");
 			}
 			waveTex = new Texture2D(waveTexSize, waveTexSize, tf, false);
-			waveSim = new WaveSim(waveTexSize, 1, 1, 1, 1, 1024);
+			waveSim = new WaveSim(waveTexSize, 1, 1, 1, 1, 1);
 		}
 
 		private void Update()
@@ -42,7 +42,7 @@ namespace OceanPro.Tutorial
 
 		private void OnGUI()
 		{
-			GUI.DrawTexture(new Rect(100, 100, waveTexSize, waveTexSize), waveTex);
+			GUI.DrawTexture(new Rect(100, 100, 256, 256), waveTex);
 		}
 	}
 }
