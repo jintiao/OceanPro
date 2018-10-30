@@ -15,18 +15,10 @@ namespace OceanPro.Tutorial
 
 		private void Start()
 		{
-			var tf = TextureFormat.RGBA32;
-			if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAFloat))
-			{
-				Debug.Log("RGBAFloat");
-				//tf = TextureFormat.RGBAFloat;
-			}
-			else
-			{
-				Debug.LogWarning("RGBA32");
-			}
+			//if(SystemInfo.SupportsTextureFormat(TextureFormat.RGBAFloat))
+			var tf = TextureFormat.RGBAFloat;
 			waveTex = new Texture2D(waveTexSize, waveTexSize, tf, false);
-			waveSim = new WaveSim(waveTexSize, 1, 1, 1, 1, 1);
+			waveSim = new WaveSim(waveTexSize, 1, 1, 10, 5, 1);
 		}
 
 		private void Update()
@@ -34,9 +26,9 @@ namespace OceanPro.Tutorial
 			if(waveTex == null || waveSim == null)
 				return;
 
-			waveSim.Update(Time.time);
+			var pixels = waveTex.GetRawTextureData<Color>();
+			waveSim.Update(Time.time * 0.1f, pixels);
 
-			waveTex.SetPixels(waveSim.texture);
 			waveTex.Apply(false);
 		}
 

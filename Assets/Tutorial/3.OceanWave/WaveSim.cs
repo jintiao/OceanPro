@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 namespace OceanPro.Tutorial
@@ -16,8 +17,6 @@ namespace OceanPro.Tutorial
 
 	public class WaveSim
 	{
-		public Color[] texture;
-
 		private const float g = 9.81f;
 		private const float epsilon = 0.0001f;
 
@@ -50,7 +49,6 @@ namespace OceanPro.Tutorial
 			this.worldSize = worldSize;
 
 			var gridSize2 = gridSize * gridSize;
-			texture = new Color[gridSize2];
 			waveConstantLUT = new WaveConstant[gridSize2];
 			heightField = new ComplexF[gridSize2];
 			dispFieldX = new ComplexF[gridSize2];
@@ -135,7 +133,7 @@ namespace OceanPro.Tutorial
 			return (grid - (gridSize / 2.0f)) * pi2ByWorldSize;
 		}
 
-		public void Update(float time)
+		public void Update(float time, NativeArray<Color> pixels)
 		{
 			int halfYSize = (gridSize / 2) + 1;
 			for(int y = 0; y < halfYSize; y++)
@@ -184,16 +182,12 @@ namespace OceanPro.Tutorial
 					dispFieldX[index] *= sign * choppyWaveScale;
 					dispFieldZ[index] *= sign * choppyWaveScale;
 
-					texture[index] = new Color(EncodeFloat(dispFieldX[index].real),
-											   EncodeFloat(-heightField[index].real),
-											   EncodeFloat(dispFieldZ[index].real));
+					pixels[index] = new Color(dispFieldX[index].real,
+											  -heightField[index].real,
+											  dispFieldZ[index].real,
+					                         1);
 				}
 			}
-		}
-
-		private float EncodeFloat(float f)
-		{
-			return f;
 		}
 
 		private int PowNeg1(int n)
