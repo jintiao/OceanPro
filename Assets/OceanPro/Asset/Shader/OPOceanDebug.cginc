@@ -3,48 +3,80 @@
 
 #include "UnityCG.cginc"
 
-struct VSInput
+struct a2v
 {
 	float4 vertex : POSITION;
 };
 
-struct HSInput
+struct v2f
 {
-	float4 viewDir : TEXCOORD0;
-	float4 worldPos : TEXCOORD1;
+#if OP_NO_TESSELATION
+	float4 vertex : SV_POSITION;
+#endif
+
+	half4 viewDir : TEXCOORD0;
+	float4 posWorld : TEXCOORD1;
+	half4 normal : TEXCOORD2;
+	float4 oceanParam : TEXCOORD3;
 };
 
-
-sampler2D _DispTex;
-float4 _OceanParam;
-
-HSInput OceanVS (VSInput v)
+struct v2f_hs
 {
-	HSInput o;
-	UNITY_INITIALIZE_OUTPUT(HSInput, o);
+	float4 vertex : SV_POSITION;
+
+	half4 viewDir : TEXCOORD0;
+	float4 posWorld : TEXCOORD1;
+	half4 normal : TEXCOORD2;
+	float4 oceanParam : TEXCOORD3;
+};
+
+struct v2f_gs
+{
+	v2f_hs data;
+	float2 bc : TEXCOORD9; //barycentricCoordinates
+};
+
+sampler2D_float _DispTex;
+float4 _DispTex_TexelSize;
+float4 _OceanParam0;
+float4 _OceanParam1;
+
+v2f OceanVS (a2v v)
+{
+	v2f o;
+	UNITY_INITIALIZE_OUTPUT(v2f, o);
 
 	float4 wpos = v.vertex;
 	wpos.w = wpos.y; // store edge information
-	wpos.y = _OceanParam.w/* + (4.5f * (wpos.w > 0.98f) ? 1 : 0) */;
+
+	wpos.y = _OceanParam1.w/* + (4.5f * (wpos.w > 0.98f) ? 1 : 0) */;
 	wpos.xz = (wpos.xz * 2.0f - 1.0f) * ((wpos.w > 0.98f) ? _ProjectionParams.z * 2.0f : 500.0f);
 	wpos.xz += _WorldSpaceCameraPos.xz - frac(_WorldSpaceCameraPos.xz);
-	o.worldPos = wpos;
+
+	o.posWorld = wpos;
 
 	o.viewDir.xyz = _WorldSpaceCameraPos.xyz - wpos.xyz;
 	o.viewDir.w = sign(o.viewDir.z);
 
+	o.oceanParam.x = _OceanParam1.x;
+	o.oceanParam.w = _OceanParam0.w;
+
+#if OP_NO_TESSELATION
+	o.vertex = UnityObjectToClipPos(wpos);
+#endif
+
 	return o;
 }
 
-struct HSConstant
+struct hs_const_output
 {
     float edges[3] : SV_TessFactor;
     float inside : SV_InsideTessFactor;
 };
 
-HSConstant OceanPCF (InputPatch<HSInput, 3> patch) 
+hs_const_output OceanPCF (InputPatch<v2f, 3> patch) 
 {
-	HSConstant o;
+	hs_const_output o;
 
 	float maxFactor = 16;
 	float factorEdge = 32;
@@ -85,20 +117,10 @@ HSConstant OceanPCF (InputPatch<HSInput, 3> patch)
 [UNITY_outputtopology("triangle_cw")]
 [UNITY_partitioning("fractional_odd")]
 [UNITY_patchconstantfunc("OceanPCF")]
-HSInput OceanHS (InputPatch<HSInput, 3> patch, uint id : SV_OutputControlPointID) 
+v2f OceanHS (InputPatch<v2f, 3> patch, uint id : SV_OutputControlPointID) 
 {
 	return patch[id];
 }
-
-
-
-
-struct GSInput
-{
-	float4 vertex : SV_POSITION;
-	float4 viewDir : TEXCOORD0;
-	float4 worldPos : TEXCOORD1;
-};
 
 float4 BarycentricInterp(float3 bcs, float4 p0, float4 p1, float4 p2)
 {
@@ -106,35 +128,47 @@ float4 BarycentricInterp(float3 bcs, float4 p0, float4 p1, float4 p2)
 }
 
 [UNITY_domain("tri")]
-GSInput OceanDS (HSConstant factors, OutputPatch<HSInput, 3> patch, float3 barycentricCoordinates : SV_DomainLocation) 
+v2f_hs OceanDS (hs_const_output factors, OutputPatch<v2f, 3> patch, float3 barycentricCoordinates : SV_DomainLocation) 
 {
-	GSInput o;
-	UNITY_INITIALIZE_OUTPUT(GSInput, o);
+	v2f_hs o;
+	UNITY_INITIALIZE_OUTPUT(v2f_hs, o);
 
 	o.viewDir = BarycentricInterp(barycentricCoordinates, patch[0].viewDir, patch[1].viewDir, patch[2].viewDir);
-	//o.worldPos = BarycentricInterp(barycentricCoordinates, patch[0].worldPos, patch[1].worldPos, patch[2].worldPos);   
-	float4 worldPos = float4(_WorldSpaceCameraPos.xyz - o.viewDir.xyz, 1);
+	o.posWorld = BarycentricInterp(barycentricCoordinates, patch[0].posWorld, patch[1].posWorld, patch[2].posWorld);   
 
-	float2 uv = (worldPos.xz) * 0.0125;
+	float4 posWorld = float4(_WorldSpaceCameraPos.xyz - o.viewDir.xyz, 1);
+
+	float camDist = length(posWorld.xyz - _WorldSpaceCameraPos.xyz);
+	float atten = saturate(camDist * 0.5);
+	atten *= atten;
+
+	float2 uv = (posWorld.xz) * 0.0125 * patch[0].oceanParam.w;
 	float4 disp = tex2Dlod(_DispTex, float4(uv, 0.0, 0.0));
+	disp += tex2Dlod(_DispTex, float4(uv * 2, 0.0, 0.0)) * float4(1.5, 1.5, 1.0, 1.0);
+	disp *= atten;
+	posWorld.xyz += disp * 0.06 * patch[0].oceanParam.x;
 
-	worldPos.xyz += disp * 8;
-	o.vertex = UnityObjectToClipPos(worldPos);
+	float4 disp2 = tex2Dlod(_DispTex, float4(uv + float2(_DispTex_TexelSize.x, 0), 0.0, 0.0));
+	disp2 += tex2Dlod(_DispTex, float4(uv * 2 + float2(_DispTex_TexelSize.x, 0), 0.0, 0.0)) * float4(1.5, 1.5, 1.0, 1.0);
+	disp2 *= atten;
+
+	float4 edgeLen = disp2 - disp;
+	posWorld.w = saturate(-(edgeLen.x + edgeLen.y) * 0.035);
+
+	posWorld.w = lerp(posWorld.w, 0, saturate(o.posWorld.w * 1.5) ) ;
+
+	o.posWorld = posWorld;
+	o.vertex = UnityObjectToClipPos(posWorld);
 
 	return o;
 }
 
 
-struct FSInput
-{
-	GSInput data;
-	float2 bc : TEXCOORD9; //barycentricCoordinates
-};
 
 [maxvertexcount(3)]
-void OceanGS(triangle GSInput i[3], inout TriangleStream<FSInput> stream)
+void OceanGS(triangle v2f_hs i[3], inout TriangleStream<v2f_gs> stream)
 {
-	FSInput g0, g1, g2;
+	v2f_gs g0, g1, g2;
 
 	g0.data = i[0];
 	g1.data = i[1];
@@ -150,7 +184,7 @@ void OceanGS(triangle GSInput i[3], inout TriangleStream<FSInput> stream)
 }
 
 
-half4 OceanFS (FSInput i) : SV_Target
+half4 OceanFS (v2f_gs i) : SV_Target
 {
 	half4 col = half4(0.5, 0.5, 0.5, 1);
 
