@@ -15,13 +15,14 @@ namespace OceanPro
 		private Texture2D oceanTex;
 		private OPWaveSim waveSim;
 
-		private float waterLevel;
+		private OPOceanParam oceanParam;
 
 		public void ResetOcean(OPOceanParam param)
 		{
-			waveSim = new OPWaveSim();
+			oceanParam = param;
 
-			CreateMaterial(param);
+			waveSim = new OPWaveSim(texSize, oceanParam.windSpeed, oceanParam.windSpeed, oceanParam.wavesSize, oceanParam.wavesAmount, 1.0f);
+			CreateMaterial();
 			CreateMesh();
 		}
 
@@ -77,17 +78,14 @@ namespace OceanPro
 			oceanRenderer.material = oceanMat;
 		}
 
-		private void CreateMaterial(OPOceanParam op)
+		private void CreateMaterial()
 		{
 			oceanTex = new Texture2D(texSize, texSize, TextureFormat.RGBAFloat, false);
 
 			oceanMat = new Material(Shader.Find("Hidden/OceanPro/OPOcean"));
 			oceanMat.SetTexture("_DispTex", oceanTex);
-			oceanMat.SetVector("_OceanParam0", op.param0);
-			oceanMat.SetVector("_OceanParam1", op.param1);
-			//oceanMat.EnableKeyword("OP_NO_TESSELATION");
-
-			waterLevel = op.param1.w;
+			oceanMat.SetVector("_OceanParam0", oceanParam.param0);
+			oceanMat.SetVector("_OceanParam1", oceanParam.param1);
 		}
 
 		void Update()
@@ -102,17 +100,23 @@ namespace OceanPro
 			if(oceanRenderer == null)
 				return;
 
-			oceanRenderer.enabled = (waterLevel < Camera.main.transform.position.y);
+			if(oceanParam == null)
+				return;
+
+			oceanRenderer.enabled = (oceanParam.waterLevel < Camera.main.transform.position.y);
 		}
 
 		private void UpdateBound()
 		{
 			if(oceanMesh == null)
 				return;
+			
+			if(oceanParam == null)
+				return;
 
 			var cam = Camera.main;
 			var camPos = cam.transform.position;
-			oceanMesh.bounds = new Bounds(new Vector3(camPos.x, waterLevel, camPos.z), new Vector3(cam.farClipPlane, 1, cam.farClipPlane));
+			oceanMesh.bounds = new Bounds(new Vector3(camPos.x, oceanParam.waterLevel, camPos.z), new Vector3(cam.farClipPlane, 1, cam.farClipPlane));
 		}
 
 		private void UpdateWave()
@@ -124,7 +128,7 @@ namespace OceanPro
 				return;
 			
 			var pixels = oceanTex.GetRawTextureData<Color>();
-			waveSim.Update(Time.time, pixels, texSize);
+			waveSim.Update(Time.time * 0.1f, pixels);
 			oceanTex.Apply(false);
 		}
 	}

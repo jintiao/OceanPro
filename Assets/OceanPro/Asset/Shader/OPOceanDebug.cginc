@@ -2,6 +2,7 @@
 #define OCEAN_COMMON
 
 #include "UnityCG.cginc"
+#include "Tessellation.cginc"
 
 struct a2v
 {
@@ -78,37 +79,23 @@ hs_const_output OceanPCF (InputPatch<v2f, 3> patch)
 {
 	hs_const_output o;
 
-	float maxFactor = 16;
-	float factorEdge = 32;
-	float factorInside = 32;
-	float scale = 1;
-	float fMinDistance = 0;
-	float fMaxDistance = 300;
+	float edgeLength = 15;
+	float maxDisplacement = 10;
 
-	float edge = factorEdge * scale;
-	float inside = factorInside * scale;
-	float4 factors = float4(edge, edge, edge, inside);
-
-	float3 p0 = _WorldSpaceCameraPos.xyz - patch[0].viewDir.xyz;
-	float3 p1 = _WorldSpaceCameraPos.xyz - patch[1].viewDir.xyz;
-	float3 p2 = _WorldSpaceCameraPos.xyz - patch[2].viewDir.xyz;
-
-	factors.xyz = distance(p2, p1);
-	factors.x /= distance((p2 + p1) / 2, _WorldSpaceCameraPos.xyz);
-	factors.y = distance(p2, p0);
-	factors.y /= distance((p2 + p0) / 2, _WorldSpaceCameraPos.xyz);
-	factors.z = distance(p0, p1);
-	factors.z /= distance((p0 + p1) / 2, _WorldSpaceCameraPos.xyz);
-
-	float avg = max(max(factors.x, factors.y), factors.z) ;
-	factors.w = saturate(avg);
-	factors.xyz *= edge;
-	factors.w *= inside;
-
-	o.edges[0] = clamp(factors.x, 1, maxFactor);
-	o.edges[1] = clamp(factors.y, 1, maxFactor);
-	o.edges[2] = clamp(factors.z, 1, maxFactor);
-	o.inside   = clamp(factors.w, 1, maxFactor);
+	if (UnityWorldViewFrustumCull(patch[0].posWorld, patch[1].posWorld, patch[2].posWorld, maxDisplacement))
+	{
+		o.edges[0] = 0;
+		o.edges[1] = 0;
+		o.edges[2] = 0;
+		o.inside   = 0;
+	}
+	else
+	{
+		o.edges[0] = UnityCalcEdgeTessFactor (patch[1].posWorld, patch[2].posWorld, edgeLength);
+		o.edges[1] = UnityCalcEdgeTessFactor (patch[2].posWorld, patch[0].posWorld, edgeLength);
+		o.edges[2] = UnityCalcEdgeTessFactor (patch[0].posWorld, patch[1].posWorld, edgeLength);
+		o.inside   = (o.edges[0] + o.edges[1] + o.edges[2]) / 3.0f;
+	}
 	return o;
 }
 

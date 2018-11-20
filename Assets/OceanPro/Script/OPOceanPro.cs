@@ -66,11 +66,7 @@ namespace OceanPro
 
 		private OPOceanParam SetupOceanParam()
 		{
-			return new OPOceanParam 
-			{
-				param0 = new Vector4(windDirection, windSpeed, 0, wavesAmount),
-				param1 = new Vector4(wavesSize, Mathf.Cos(windDirection), Mathf.Sin(windDirection), waterLevel),
-			};
+			return new OPOceanParam(windDirection, windSpeed, wavesAmount, wavesSize, waterLevel);
 		}
 
 	}
